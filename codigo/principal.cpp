@@ -3,10 +3,15 @@
 #include <unistd.h>
 using namespace std;
 
-int main()
+int main(int argc, char* argv[])
 {
-	Canvas canvas;
-	canvas.render();
+	if(argc != 2){
+		perror("Execute with obj file like argument");
+		exit(EXIT_FAILURE);
+	}
+
+	Canvas *canvas = new Canvas(argv[1]);
+	canvas->render();
 
 	return 0;
 }

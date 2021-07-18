@@ -9,9 +9,9 @@
 using namespace std;
 #define c M_PI / 180
 
-
-Canvas::Canvas(){
-	gfx_open(WIDTH, HIGH, NAME);
+Canvas::Canvas(char *_file){
+	file = _file;
+	gfx_open(WIDTH, HIGH, file);
 	gfx_color(CR,CG,CB);
 }
 
@@ -24,7 +24,7 @@ void Canvas::render()
 
 	int vertex = 0, lines = 1, faces = 1, _f1 = 0, _f2 = 0, _f3 = 0;
 
-	FILE *fp = fopen("bugatti.obj", "r");
+	FILE *fp = fopen(file, "r");
 	char ch, chn, chs, key; 
 	
 	if (fp == NULL){
@@ -146,19 +146,21 @@ void Canvas::render()
 	int yTranslation = 0;
 	double _scale = 1.0;
 	_v = v;
-	while(1)
+	const char ESC = 27;
+	unsigned char operate;
+	while(key != ESC)
 	{
 		xGrades %= 360;
 		yGrades %= 360;
 		if(xGrades < 0) xGrades = 360;
+
 		
 		gfx_clear();
 		//draw
 		if(vertex)
 			renderVertex(&_v, xTranslation, yTranslation);
-		/*
 		if(lines)
-			renderLines(&l, &_v, xTranslation, yTranslation);*/
+			renderLines(&l, &_v, xTranslation, yTranslation);
 		if(faces)
 			renderFaces(&f, &_v, xTranslation, yTranslation);
 		if(_f1)
@@ -169,7 +171,7 @@ void Canvas::render()
 			renderFaces(&f3, &_v, xTranslation, yTranslation);
 		
 		gfx_flush();
-		usleep(44666);	
+		usleep(10);	
 		_v = v;
 		
 		key = gfx_wait();
@@ -190,27 +192,27 @@ void Canvas::render()
 				break;
 			case 'l':
 				lines = !lines;
-			break;
+				break;
 			case 'f':
 				faces = !faces;
-			break;
-			case 'R':
-				--xGrades;
 				break;
-			case 'Q':
+			case 'R':
 				--yGrades;
 				break;
+			case 'Q':
+				--zGrades;
+				break;
 			case 'T':
-				++xGrades;
+				++yGrades;
 				break;
 			case 'S':
-				 ++yGrades; 
+				 ++zGrades; 
 				break;
 			case '6':
-				++zGrades;
+				++xGrades;
 				break;
 			case '7':
-				 --zGrades; 
+				 --xGrades; 
 				break;
 			case 'w':
 				yTranslation -= 5;
@@ -242,9 +244,11 @@ void Canvas::render()
 		rotateY(&_v, yGrades );
 		rotateZ(&_v, zGrades );
 	}
+
+	printf("\n--Finish--");
 }
 
-void Canvas::rotateX(std::vector<Coor> *v, int grades){
+void Canvas::rotateY(std::vector<Coor> *v, int grades){
 	double sin1 = sin(grades * c);
 	double cos1 = cos(grades * c);
 	int y, z;
@@ -256,7 +260,7 @@ void Canvas::rotateX(std::vector<Coor> *v, int grades){
 	}
 }
 
-void Canvas::rotateY(std::vector<Coor> *v, int grades){
+void Canvas::rotateZ(std::vector<Coor> *v, int grades){
 	double sin1 = sin(grades * c);
 	double cos1 = cos(grades * c);
 	int x, z;
@@ -268,7 +272,7 @@ void Canvas::rotateY(std::vector<Coor> *v, int grades){
 	}
 }
 
-void Canvas::rotateZ(std::vector<Coor> *v, int grades){
+void Canvas::rotateX(std::vector<Coor> *v, int grades){
 	double sin1 = sin(grades * c);
 	double cos1 = cos(grades * c);
 	int x, y;
@@ -289,29 +293,39 @@ void Canvas::scale(std::vector<Coor> *v, double scale){
 }
 
 void Canvas::renderVertex(vector<Coor> *v, int xTranslation, int yTranslation){
+	const int X_TRANSLATION = HALF_WIDTH + xTranslation;
+	const int Y_TRANSLATION = HALF_HIGH + yTranslation;
 	for(auto it = v->begin(); it < v->end(); ++it){
-		gfx_line(it->getX() + WIDTH/2 + xTranslation, 
-					(HIGH/2 - (it->getY())) + yTranslation, 
-					it->getX() + WIDTH/2 + xTranslation, 
-					(HIGH/2 - (it->getY())) + yTranslation);
+		gfx_line(it->getX() + X_TRANSLATION, 
+					(Y_TRANSLATION - it->getY()), 
+					it->getX() + X_TRANSLATION, 
+					(Y_TRANSLATION - it->getY()));
 	}
 }
 
-void Canvas::renderLines(vector<Line> *l, vector<Coor> *v, int xTranslation, int yTranslation){
+void Canvas::renderLines(vector<Line> *l, vector<Coor> *v, int xTranslation,
+ int yTranslation)
+{
 	auto itv = v->begin();
+	const int X_TRANSLATION = HALF_WIDTH + xTranslation;
+	const int Y_TRANSLATION = HALF_HIGH + yTranslation;
 	for(auto it = l->begin(); it < l->end(); ++it){
 		Coor p1 = itv[it->getP1() - 1]; 
 		Coor p2 = itv[it->getP2() - 1]; 
-		gfx_line(p1.getX() + WIDTH/2 + xTranslation, 
-					(HIGH/2 - (p1.getY())) + yTranslation, 
-					p1.getX() + WIDTH/2 + xTranslation, 
-					(HIGH/2 - (p2.getY())) + yTranslation);
+		gfx_line(p1.getX() + X_TRANSLATION, 
+					(Y_TRANSLATION - p1.getY()), 
+					p1.getX() + X_TRANSLATION, 
+					(Y_TRANSLATION - p2.getY()));
 	
 	}
 }
 
-void Canvas::renderFaces(vector<Face> *f, vector<Coor> *v, int xTranslation, int yTranslation){
+void Canvas::renderFaces(vector<Face> *f, vector<Coor> *v, int xTranslation, 
+	int yTranslation)
+{
 	auto itv = v->begin();
+	const int X_TRANSLATION = HALF_WIDTH + xTranslation;
+	const int Y_TRANSLATION = HALF_HIGH + yTranslation;
 	for(auto it = f->begin(); it < f->end(); ++it){
 
 		Coor p1 = itv[it->getV1() - 1];
@@ -319,15 +333,15 @@ void Canvas::renderFaces(vector<Face> *f, vector<Coor> *v, int xTranslation, int
 		Coor p3 = itv[it->getV3() - 1];
 
 		
-		gfx_line(p1.getX() + WIDTH/2 + xTranslation, 
-					(HIGH/2 - (p1.getY())) + yTranslation, 
-					p2.getX() + WIDTH/2 + xTranslation, 
-					(HIGH/2 - (p2.getY())) + yTranslation);
+		gfx_line(p1.getX() + X_TRANSLATION, 
+					(Y_TRANSLATION - p1.getY()), 
+					p2.getX() + X_TRANSLATION, 
+					(Y_TRANSLATION - p2.getY()));
 
-		gfx_line(p2.getX() + WIDTH/2 + xTranslation, 
-					(HIGH/2 - (p2.getY())) + yTranslation, 
-					p3.getX() + WIDTH/2 + xTranslation, 
-					(HIGH/2 - (p3.getY())) + yTranslation);
+		gfx_line(p2.getX() + X_TRANSLATION, 
+					(Y_TRANSLATION - p2.getY()), 
+					p3.getX() + X_TRANSLATION, 
+					(Y_TRANSLATION - p3.getY()));
 					
 	
 	}
