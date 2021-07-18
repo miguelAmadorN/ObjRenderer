@@ -13,8 +13,8 @@ Compile from terminal with Makefile:
 
 **Key events** 
 
-**v:** Hide and show vertices
-**f:** Hide and show faces
+**v:** Hide/show vertices
+**f:** Hide/show faces
 
 **w:** Move top
 **s:** Move down
@@ -30,4 +30,4 @@ Compile from terminal with Makefile:
 
 Example
 
-![Example 1](../img.png)
+![Example 1](./img.png)
