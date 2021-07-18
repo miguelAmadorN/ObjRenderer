@@ -30,4 +30,4 @@ Compile from terminal with Makefile:
 
 Example
 
-![Example 1](../ObjRenderer/img.png)
+![Example 1](../img.png)
